@@ -1,0 +1,41 @@
+# 订阅管理器配置文件
+
+# 本地私有节点目录
+local_nodes_path: ./local-nodes
+
+# 远程订阅列表
+remote_subscriptions:
+  # 示例：添加你的远程订阅 URL
+  - name: "Subscription 1"
+    url: "https://example.com/sub1"
+    enabled: true
+  # - name: "Subscription 2"
+  #   url: "https://example.com/sub2"
+  #   enabled: true
+
+# 规则集目录
+rules_path: ./rules
+
+# 配置模板路径
+template_path: ./templates/base-config.yaml
+
+# 输出配置
+output:
+  path: ./output
+  filename: merged-config.yaml
+  # 是否生成备份
+  backup: true
+  # 备份保留数量
+  backup_count: 5
+
+# 日志配置
+logging:
+  level: INFO
+  file: merge_subscriptions.log
+
+# 定时更新配置（用于 Crontab）
+schedule:
+  # 每天执行时间（小时:分钟）
+  time: "09:00"
+  # 执行频率：daily, weekly, monthly
+  frequency: "daily"

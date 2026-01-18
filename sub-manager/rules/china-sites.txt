@@ -1,0 +1,26 @@
+# 国内常见网站规则
+DOMAIN-SUFFIX,baidu.com
+DOMAIN-SUFFIX,qq.com
+DOMAIN-SUFFIX,aliyun.com
+DOMAIN-SUFFIX,weibo.com
+DOMAIN-SUFFIX,bilibili.com
+DOMAIN-SUFFIX,netease.com
+DOMAIN-SUFFIX,sogou.com
+DOMAIN-SUFFIX,163.com
+DOMAIN-SUFFIX,sina.com.cn
+DOMAIN-SUFFIX,tencent.com
+DOMAIN-SUFFIX,ifeng.com
+DOMAIN-SUFFIX,chinabig.com
+DOMAIN-SUFFIX,sohu.com
+DOMAIN-SUFFIX,kaixin001.com
+DOMAIN-SUFFIX,jd.com
+DOMAIN-SUFFIX,taobao.com
+DOMAIN-SUFFIX,alibaba.com
+DOMAIN-SUFFIX,aliyun.com
+DOMAIN-SUFFIX,meituan.com
+DOMAIN-SUFFIX,dianping.com
+DOMAIN-SUFFIX,ctrip.com
+DOMAIN-SUFFIX,qunar.com
+DOMAIN-SUFFIX,douban.com
+DOMAIN-SUFFIX,zhihu.com
+DOMAIN-SUFFIX,wechat.com

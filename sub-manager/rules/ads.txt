@@ -1,0 +1,15 @@
+# 广告拦截规则集
+# 添加常见的广告和追踪域名
+DOMAIN,ads.google.com
+DOMAIN,pagead2.googlesyndication.com
+DOMAIN,analytics.google.com
+DOMAIN,adservice.google.com
+DOMAIN,googleadservices.com
+DOMAIN-SUFFIX,doubleclick.net
+DOMAIN-SUFFIX,google-analytics.com
+DOMAIN-SUFFIX,flurry.com
+DOMAIN-SUFFIX,adroll.com
+DOMAIN,crash.qq.com
+DOMAIN,mtrace.qq.com
+DOMAIN,stat.qinghua.edu.cn
+DOMAIN,countly.com

@@ -1,0 +1,56 @@
+# 本地私有节点配置
+# 在这里添加你自己配置的节点，格式如下
+
+proxies:
+  # 示例：Vmess 节点
+  - name: "🇭🇰 Hong Kong 01"
+    type: vmess
+    server: example.com
+    port: 8080
+    uuid: "your-uuid-here"
+    alterId: 0
+    cipher: auto
+    tls: false
+    skip-cert-verify: false
+
+  # 示例：Shadowsocks 节点
+  - name: "🇸🇬 Singapore 01"
+    type: ss
+    server: example.com
+    port: 8388
+    cipher: chacha20-ietf-poly1305
+    password: "your-password-here"
+
+  # 示例：Trojan 节点
+  - name: "🇺🇸 USA 01"
+    type: trojan
+    server: example.com
+    port: 443
+    password: "your-password-here"
+    sni: example.com
+    skip-cert-verify: false
+
+  # 示例：Hysteria 节点
+  - name: "🇯🇵 Japan 01"
+    type: hysteria
+    server: example.com
+    port: 443
+    auth_string: "your-password-here"
+    obfs: "salamander"
+    obfs-password: "your-obfs-password"
+    sni: example.com
+    skip-cert-verify: false
+
+  # 示例：Wireguard 节点
+  # - name: "🇬🇧 UK 01"
+  #   type: wireguard
+  #   server: example.com
+  #   port: 443
+  #   private-key: "your-private-key"
+  #   ip: "10.0.0.1"
+  #   ipv6: "fd00::1"
+  #   dns: 
+  #     - 8.8.8.8
+  #     - 1.1.1.1
+  #   reserved: [0, 0, 0]
+  #   mtu: 1408

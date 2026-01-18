@@ -1,0 +1,86 @@
+# Clash/Stash 基础配置模板
+# 这个文件定义了基础的配置框架
+# 节点和规则会自动合并到这个文件
+
+# 代理配置（节点列表，由脚本自动填充）
+proxies: []
+
+# 代理组（策略组）
+proxy-groups:
+  - name: "🚀 Proxy"
+    type: select
+    proxies:
+      - "♻️ Auto"
+      - "🌍 Global"
+      - "DIRECT"
+
+  - name: "♻️ Auto"
+    type: url-test
+    url: http://www.google.com/generate_204
+    interval: 300
+    tolerance: 50
+    use: []
+
+  - name: "🌍 Global"
+    type: select
+    use: []
+
+# 规则集提供者（由脚本自动生成）
+rule-providers: {}
+
+# 规则匹配
+rules:
+  # 本地规则优先
+  - DOMAIN-SUFFIX,apple.com,DIRECT
+  - IP-CIDR,192.168.0.0/16,DIRECT
+  - IP-CIDR,10.0.0.0/8,DIRECT
+  - IP-CIDR,172.16.0.0/12,DIRECT
+  - IP-CIDR,127.0.0.0/8,DIRECT
+  - IP-CIDR,100.64.0.0/10,DIRECT
+  - IP-CIDR,224.0.0.0/4,DIRECT
+  - IP-CIDR6,::1/128,DIRECT
+  - IP-CIDR6,fc00::/7,DIRECT
+  - IP-CIDR6,fe80::/10,DIRECT
+  - IP-CIDR6,ff00::/8,DIRECT
+  - DOMAIN-KEYWORD,localhost,DIRECT
+  - GEOIP,CN,DIRECT
+  - MATCH,🚀 Proxy
+
+# DNS 配置
+dns:
+  enable: true
+  ipv6: false
+  listen: 0.0.0.0:53
+  servers:
+    - 8.8.8.8
+    - 8.8.4.4
+    - 1.1.1.1
+
+# Clash 特定配置
+mode: rule
+mixed-port: 7890
+socks-port: 7891
+http-port: 7892
+
+# 日志级别
+log-level: info
+
+# 是否允许局域网连接
+allow-lan: false
+
+# 绑定地址
+bind-address: "*"
+
+# 外部代理接口地址
+external-controller: 127.0.0.1:9090
+
+# 流量统计
+profile:
+  store: false
+
+# 高级配置
+tun:
+  enable: false
+  stack: system
+  dns-hijack:
+    - 0.0.0.0:53
