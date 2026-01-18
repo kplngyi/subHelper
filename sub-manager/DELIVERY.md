@@ -104,7 +104,7 @@ sub-manager/
 - 远程订阅自动拉取和更新
 - 智能去重（基于节点名称和服务器地址）
 - 节点名称美化和规范化
-- 多协议支持（Vmess、SS、Trojan、Hysteria 等）
+- 多协议支持（Vmess、VLESS、SS、Trojan、Hysteria 等）
 
 ### 2. 规则系统 ✅
 - 灵活的规则集文件管理

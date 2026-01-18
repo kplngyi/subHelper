@@ -153,6 +153,15 @@ proxies:
     alterId: 0
     cipher: auto
 
+  # VLESS 节点
+  - name: "🇯🇵 Japan 01"
+    type: vless
+    server: example.com
+    port: 443
+    uuid: "your-uuid"
+    tls: true
+    servername: "example.com"
+
   # Shadowsocks 节点
   - name: "🇸🇬 Singapore 01"
     type: ss
@@ -172,6 +181,7 @@ proxies:
 
 **支持的协议：**
 - Vmess
+- VLESS
 - Shadowsocks (SS)
 - Shadowsocksr (SSR)
 - Trojan

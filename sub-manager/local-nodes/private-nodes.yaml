@@ -30,16 +30,26 @@ proxies:
     sni: example.com
     skip-cert-verify: false
 
-  # 示例：Hysteria 节点
+  # 示例：VLESS 节点
   - name: "🇯🇵 Japan 01"
-    type: hysteria
+    type: vless
     server: example.com
     port: 443
-    auth_string: "your-password-here"
-    obfs: "salamander"
-    obfs-password: "your-obfs-password"
-    sni: example.com
+    uuid: "your-uuid-here"
+    tls: true
+    servername: "example.com"
     skip-cert-verify: false
+
+  # 示例：Hysteria 节点
+  # - name: "🇦🇺 Australia 01"
+  #   type: hysteria
+  #   server: example.com
+  #   port: 443
+  #   auth_string: "your-password-here"
+  #   obfs: "salamander"
+  #   obfs-password: "your-obfs-password"
+  #   sni: example.com
+  #   skip-cert-verify: false
 
   # 示例：Wireguard 节点
   # - name: "🇬🇧 UK 01"
