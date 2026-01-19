@@ -22,13 +22,55 @@ echo "安装路径: ${INSTALL_PATH}"
 echo "Web 路径: ${WEB_ROOT}"
 echo ""
 
+# ===================================
+# 发送 ntfy 推送
+# 参数1: 消息内容
+# ===================================
+send_ntfy() {
+    local MESSAGE="$1"
+    local TOPIC="sub-us-2026"        # 自定义主题
+    local NTFY_URL="https://ntfy.sh" # ntfy 服务器
+
+    # 发送通知
+    curl -s -d "$MESSAGE" "$NTFY_URL/$TOPIC"
+}
+
 # 检查系统
 check_system() {
-    if [ ! -f /etc/centos-release ]; then
-        echo -e "${RED}❌ 此脚本仅支持 CentOS 系统${NC}"
-        exit 1
+    # 1. 检查通用的 os-release 文件
+    if [ -f /etc/os-release ]; then
+        # 导入系统变量
+        . /etc/os-release
+        # $ID 变量通常是 centos, rhel, rocky, almalinux 等
+        if [[ "$ID" == "centos" || "$ID" == "rhel" || "$ID_LIKE" == *"centos"* || "$ID_LIKE" == *"rhel"* ]]; then
+            echo -e "${GREEN}✓ $NAME 系统检查通过${NC}"
+            return 0
+        fi
     fi
-    echo -e "${GREEN}✓ CentOS 系统检查通过${NC}"
+    # 2. 兜底方案：检查传统的 redhat-release（包含 CentOS/Fedora/RH）
+    if [ -f /etc/redhat-release ]; then
+        echo -e "${GREEN}✓ 检测到类 RedHat 系统: $(cat /etc/redhat-release)${NC}"
+        return 0
+    fi
+
+    # 3. 都不匹配则报错
+    echo -e "${RED}❌ 此脚本仅支持 CentOS 或类 RHEL 系统${NC}"
+    exit 1
+}
+#检查公网链接
+get_public_ip() {
+    IP=""
+    IP=$(curl -s https://api.ipify.org) || true
+    if [ -z "$IP" ]; then
+        IP=$(curl -s https://ifconfig.me) || true
+    fi
+    if [ -z "$IP" ]; then
+        IP=$(curl -s https://ip.sb) || true
+    fi
+    if [ -z "$IP" ]; then
+        IP="你的VPS公网IP"
+    fi
+    echo "$IP"
 }
 
 # 安装依赖
@@ -81,7 +123,8 @@ copy_project_files() {
     sudo cp -r ./config "${INSTALL_PATH}/"
     sudo cp -r ./templates "${INSTALL_PATH}/"
     sudo cp -r ./rules "${INSTALL_PATH}/"
-    sudo mkdir -p "${INSTALL_PATH}/local-nodes"
+    sudo cp -r ./local-nodes "${INSTALL_PATH}"
+    # sudo mkdir -p "${INSTALL_PATH}/local-nodes"
     
     # 更新配置路径
     sudo sed -i "s|./local-nodes|${INSTALL_PATH}/local-nodes|g" \
@@ -103,7 +146,7 @@ setup_nginx() {
     # 创建 Nginx 配置文件
     sudo tee /etc/nginx/conf.d/sub-manager.conf > /dev/null <<'EOF'
 server {
-    listen 80;
+    listen 4567;
     server_name _;
     
     client_max_body_size 100M;
@@ -185,6 +228,16 @@ setup_crontab() {
 cd ${INSTALL_PATH}
 /usr/bin/python3 ${INSTALL_PATH}/scripts/merge_subscriptions.py \
     ${INSTALL_PATH}/config/config.yaml ${WEB_ROOT}/merged.yaml >> ${INSTALL_PATH}/logs/cron.log 2>&1
+
+# ===================================
+# 发送 ntfy 推送
+# ===================================
+TOPIC="sub-us-2026"                 # 自定义主题
+NTFY_URL="https://ntfy.sh"          #ntfy 服务器
+MESSAGE="⏰ VPS (${HOSTNAME}) 自动订阅更新完成: ${WEB_ROOT}/merged.yaml"
+
+# 发送通知
+curl -s -d "$MESSAGE" "$NTFY_URL/$TOPIC"
 EOF
     
     sudo chmod +x "${INSTALL_PATH}/cron-update.sh"
@@ -255,7 +308,12 @@ show_summary() {
     echo "      sudo journalctl -u sub-manager-update.service -f"
     echo ""
     echo "📍 访问订阅:"
+    PUBLIC_IP=$(get_public_ip)
+    echo "   当前监听端口: 4567"
+    echo "   订阅地址:"
+    echo "   http://${PUBLIC_IP}:4567/merged.yaml"
     echo "   http://your-vps-ip/merged.yaml"
+    send_ntfy "🚀 VPS (${HOSTNAME}) 订阅管理系统部署完成! 访问地址: http://${PUBLIC_IP}:4567/merged.yaml"
     echo ""
     echo "📝 日志文件:"
     echo "   应用日志: ${INSTALL_PATH}/logs/merge_subscriptions.log"
