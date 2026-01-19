@@ -1,86 +1,307 @@
-# Clash/Stash 基础配置模板
-# 这个文件定义了基础的配置框架
-# 节点和规则会自动合并到这个文件
+## 配置模板
 
-# 代理配置（节点列表，由脚本自动填充）
 proxies: []
 
-# 代理组（策略组）
 proxy-groups:
-  - name: "🚀 Proxy"
-    type: select
-    proxies:
-      - "♻️ Auto"
-      - "🌍 Global"
-      - "DIRECT"
-
-  - name: "♻️ Auto"
-    type: url-test
-    url: http://www.google.com/generate_204
-    interval: 300
-    tolerance: 50
-    use: []
-
-  - name: "🌍 Global"
-    type: select
-    use: []
-
-# 规则集提供者（由脚本自动生成）
-rule-providers: {}
-
-# 规则匹配
+- name: 选择代理
+  type: select
+  icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/mini/Proxy.png
+  proxies: &id001
+  - 自动选择
+  - MINE
+  - HK 香港
+  - SG 新加坡
+  - JP 日本
+  - US 美国
+  - DIRECT
+- name: AI
+  type: select
+  icon: https://upload.wikimedia.org/wikipedia/commons/e/ef/ChatGPT-Logo.svg
+  proxies:
+  - MINE
+  - US 美国
+  - 选择代理
+- name: YouTube
+  type: select
+  icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/mini/YouTube.png
+  proxies: *id001
+- name: Speedtest
+  type: select
+  icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/mini/Speedtest.png
+  proxies: *id001
+- name: Spotify
+  type: select
+  icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/mini/Spotify.png
+  proxies: *id001
+- name: 默认
+  type: select
+  icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/mini/Final.png
+  proxies:
+  - 选择代理
+  - DIRECT
+- name: 自动选择
+  type: url-test
+  icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/mini/Proxy.png
+  url: http://cp.cloudflare.com/generate_204
+  interval: 300
+  tolerance: 50
+  include-all: true
+- name: MINE
+  type: url-test
+  filter: vip|(?i)manual
+  icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/mini/United_States.png
+  url: http://cp.cloudflare.com/generate_204
+  interval: 300
+  include-all: true
+- name: Crypto
+  type: select
+  icon: https://raw.githubusercontent.com/xixu-me/favicons/refs/heads/assets/binance.com.png
+  proxies:
+  - HK 香港
+  - SG 新加坡
+  - JP 日本
+  - 选择代理
+- name: HK 香港
+  type: url-test
+  filter: 港|🇭🇰|HK|(?i)Hong
+  icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/mini/Hong_Kong.png
+  url: http://cp.cloudflare.com/generate_204
+  interval: 300
+  include-all: true
+- name: SG 新加坡
+  type: url-test
+  filter: 新加坡|坡|狮城|🇸🇬|SG|(?i)Singapore
+  icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/mini/Singapore.png
+  url: http://cp.cloudflare.com/generate_204
+  interval: 300
+  include-all: true
+- name: JP 日本
+  type: url-test
+  filter: 日|🇯🇵|东京|JP|(?i)Japan
+  icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/mini/Japan.png
+  url: http://cp.cloudflare.com/generate_204
+  interval: 300
+  include-all: true
+- name: US 美国
+  type: url-test
+  filter: 美|🇺🇲|US|(?i)States|American
+  icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/mini/United_States.png
+  url: http://cp.cloudflare.com/generate_204
+  interval: 300
+  include-all: true
+rule-providers:
+  wechat:
+    type: http
+    behavior: classical
+    url: https://fastly.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/WeChat/WeChat.yaml
+    path: ./rules/wechat.yaml
+    interval: 86400
+  spotify:
+    type: http
+    behavior: classical
+    url: https://fastly.jsdelivr.net/gh/iab0x00/ProxyRules@main/Rule/Spotify.txt
+    path: ./rules/spotify.yaml
+    interval: 86400
+  speedtest:
+    type: http
+    behavior: domain
+    url: https://fastly.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/Speedtest/Speedtest.yaml
+    path: ./rules/speedtest.yaml
+    interval: 86400
+  github:
+    type: http
+    behavior: classical
+    url: https://fastly.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/GitHub/GitHub.yaml
+    path: ./rules/github.yaml
+    interval: 86400
+  telegram:
+    type: http
+    behavior: classical
+    url: https://fastly.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/Telegram/Telegram.yaml
+    path: ./rules/telegram.yaml
+    interval: 86400
+  youtube:
+    type: http
+    behavior: classical
+    url: https://fastly.jsdelivr.net/gh/kplngyi/ios_rule_script@master/rule/Clash/YouTube/YouTube.yaml
+    path: ./rules/youtube.yaml
+    interval: 86400
+  google:
+    type: http
+    behavior: classical
+    url: https://fastly.jsdelivr.net/gh/kplngyi/ios_rule_script@master/rule/Clash/Google/Google.yaml
+    path: ./rules/google.yaml
+    interval: 86400
+  twitter:
+    type: http
+    behavior: classical
+    url: https://fastly.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/Twitter/Twitter.yaml
+    path: ./rules/twitter.yaml
+    interval: 86400
+  instagram:
+    type: http
+    behavior: domain
+    url: https://fastly.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/Instagram/Instagram.yaml
+    path: ./rules/instagram.yaml
+    interval: 86400
+  facebook:
+    type: http
+    behavior: domain
+    url: https://fastly.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/Facebook/Facebook.yaml
+    path: ./rules/facebook.yaml
+    interval: 86400
+  steam:
+    type: http
+    behavior: domain
+    url: https://fastly.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/Steam/Steam.yaml
+    path: ./rules/steam.yaml
+    interval: 86400
+  steam@cn:
+    type: http
+    behavior: domain
+    url: https://fastly.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/SteamCN/SteamCN.yaml
+    path: ./rules/steam_cn.yaml
+    interval: 86400
+  microsoft:
+    type: http
+    behavior: domain
+    url: https://fastly.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/Microsoft/Microsoft.yaml
+    path: ./rules/microsoft.yaml
+    interval: 86400
+  microsoft@cn:
+    type: http
+    behavior: domain
+    url: https://fastly.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/MicrosoftCN/MicrosoftCN.yaml
+    path: ./rules/microsoft_cn.yaml
+    interval: 86400
+  xbox:
+    type: http
+    behavior: domain
+    url: https://fastly.jsdelivr.net/gh/blackmatrix7/ios_rule_script@master/rule/Clash/Xbox/Xbox.yaml
+    path: ./rules/xbox.yaml
+    interval: 86400
+  appletv:
+    type: http
+    behavior: classical
+    url: https://fastly.jsdelivr.net/gh/kplngyi/ios_rule_script@master/rule/Clash/AppleTV/AppleTV.yaml
+    path: ./rules/appletv.yaml
+    interval: 86400
+  crypto:
+    type: http
+    behavior: classical
+    url: https://fastly.jsdelivr.net/gh/iab0x00/ProxyRules@main/Rule/Crypto.txt
+    path: ./rules/crypto.txt
+    interval: 86400
+  ai:
+    type: http
+    behavior: classical
+    url: https://cdn.jsdelivr.net/gh/kplngyi/rules@main/ai.yaml
+    path: ./rules/ai.yaml
+    interval: 86400
+  scholar:
+    type: http
+    behavior: classical
+    url: https://fastly.jsdelivr.net/gh/kplngyi/ios_rule_script@master/rule/Clash/GlobalScholar/GlobalScholar.yaml
+    path: ./rules/scholar.yaml
+    interval: 86400
 rules:
-  # 本地规则优先
-  - DOMAIN-SUFFIX,apple.com,DIRECT
-  - IP-CIDR,192.168.0.0/16,DIRECT
-  - IP-CIDR,10.0.0.0/8,DIRECT
-  - IP-CIDR,172.16.0.0/12,DIRECT
-  - IP-CIDR,127.0.0.0/8,DIRECT
-  - IP-CIDR,100.64.0.0/10,DIRECT
-  - IP-CIDR,224.0.0.0/4,DIRECT
-  - IP-CIDR6,::1/128,DIRECT
-  - IP-CIDR6,fc00::/7,DIRECT
-  - IP-CIDR6,fe80::/10,DIRECT
-  - IP-CIDR6,ff00::/8,DIRECT
+# ===================================
+# 1️⃣ 系统与局域网 (最优先，必须直连)
+# ===================================
   - DOMAIN-KEYWORD,localhost,DIRECT
-  - GEOIP,CN,DIRECT
-  - MATCH,🚀 Proxy
+  - IP-CIDR,127.0.0.0/8,DIRECT,no-resolve
+  - DOMAIN-SUFFIX,siat.ac.cn,DIRECT
+  - GEOIP,LAN,DIRECT,no-resolve
 
-# DNS 配置
+# ===================================
+# 2️⃣ 核心服务域名硬封锁 / 分流
+# ===================================
+  - DOMAIN-KEYWORD,openai,AI
+  - DOMAIN-SUFFIX,chatgpt.com,AI
+  - DOMAIN-KEYWORD,binance,Crypto
+  - DOMAIN-SUFFIX,google.com,MINE
+  - DOMAIN-KEYWORD,hitpt,DIRECT
+
+# ===================================
+# 3️⃣ 规则集 (Rule-Set)
+# 按服务类型分组
+# ===================================
+
+## 🔹 学术与搜索
+  - RULE-SET,scholar,DIRECT
+  - RULE-SET,google,MINE
+## 🔹 加密 / 金融
+  - RULE-SET,crypto,Crypto
+## 🔹 AI
+  - RULE-SET,ai,AI
+## 🔹 视频 / 娱乐
+  - RULE-SET,youtube,YouTube
+  - RULE-SET,spotify,Spotify
+## 🔹 开发 / GitHub
+  - RULE-SET,github,选择代理
+## 🔹 社交媒体
+  - RULE-SET,telegram,选择代理
+  - RULE-SET,twitter,选择代理
+  - RULE-SET,wechat,DIRECT
+## 🔹 微软 / 游戏
+  - RULE-SET,microsoft@cn,DIRECT
+  - RULE-SET,steam@cn,DIRECT
+# ===================================
+# 4️⃣ 进程与特殊协议
+# ===================================
+  - PROCESS-NAME,Telegram.exe,选择代理
+  - PROCESS-NAME,Telegram,选择代理
+  # - AND,((PROTOCOL,UDP),(DST-PORT,443)),REJECT  # 可选，拦截 QUIC
+  - PROCESS-NAME,v2ray,DIRECT
+  - PROCESS-NAME,Surge,DIRECT
+  - PROCESS-NAME,ss-local,DIRECT
+  - PROCESS-NAME,privoxy,DIRECT
+  - PROCESS-NAME,trojan,DIRECT
+  - PROCESS-NAME,trojan-go,DIRECT
+  - PROCESS-NAME,naive,DIRECT
+  - PROCESS-NAME,CloudflareWARP,DIRECT
+  - PROCESS-NAME,Cloudflare WARP,DIRECT
+  # 下载 / P2P 工具
+  - PROCESS-NAME,p4pclient,DIRECT
+  - PROCESS-NAME,Thunder,DIRECT
+  - PROCESS-NAME,DownloadService,DIRECT
+  - PROCESS-NAME,qbittorrent,DIRECT
+  - PROCESS-NAME,Transmission,DIRECT
+  - PROCESS-NAME,fdm,DIRECT
+  - PROCESS-NAME,aria2c,DIRECT
+  - PROCESS-NAME,Folx,DIRECT
+  - PROCESS-NAME,NetTransport,DIRECT
+  - PROCESS-NAME,uTorrent,DIRECT
+  - PROCESS-NAME,WebTorrent,DIRECT
+# ===================================
+# 5️⃣ IP 与地理位置兜底 (由近及远)
+# ===================================
+  - IP-ASN,62014,选择代理,no-resolve
+  - IP-ASN,59930,选择代理,no-resolve
+  - IP-ASN,44907,选择代理,no-resolve
+  - IP-ASN,211157,选择代理,no-resolve
+  - IP-ASN,13335,DIRECT                # Cloudflare 直连
+  - IP-CIDR,162.159.193.0/24,DIRECT,no-resolve
+  - GEOIP,CN,DIRECT,no-resolve         # 国内 IP 全部直连
+# ===================================
+# 6️⃣ 最终兜底
+# ===================================
+  - MATCH,默认
 dns:
   enable: true
   ipv6: false
   listen: 0.0.0.0:53
-  servers:
-    - 8.8.8.8
-    - 8.8.4.4
-    - 1.1.1.1
-
-# Clash 特定配置
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  default-nameserver:
+  - 223.5.5.5
+  - 119.29.29.29
+  nameserver:
+  - https://dns.alidns.com/dns-query
+  - https://doh.pub/dns-query
 mode: rule
 mixed-port: 7890
-socks-port: 7891
-http-port: 7892
-
-# 日志级别
+allow-lan: true
 log-level: info
-
-# 是否允许局域网连接
-allow-lan: false
-
-# 绑定地址
-bind-address: "*"
-
-# 外部代理接口地址
-external-controller: 127.0.0.1:9090
-
-# 流量统计
-profile:
-  store: false
-
-# 高级配置
-tun:
-  enable: false
-  stack: system
-  dns-hijack:
-    - 0.0.0.0:53
+external-controller: 0.0.0.0:9090
+global-client-fingerprint: chrome

@@ -6,8 +6,8 @@ local_nodes_path: ./local-nodes
 # 远程订阅列表
 remote_subscriptions:
   # 示例：添加你的远程订阅 URL
-  - name: "Subscription 1"
-    url: "https://example.com/sub1"
+  - name: "SubOkgg"
+    url: "https://rss.okgfw.top/link/C4q2uisEujb5a0gW?mu=clash"
     enabled: true
   # - name: "Subscription 2"
   #   url: "https://example.com/sub2"
