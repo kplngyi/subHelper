@@ -1,5 +1,6 @@
 #!/bin/bash
 # Nginx SSL 配置辅助脚本 - 使用 Let's Encrypt
+# 兼容 CentOS/RHEL 8/9, 自动安装 Certbot 并处理 PATH 问题
 
 set -e
 
@@ -8,10 +9,25 @@ echo "  Nginx HTTPS 配置向导"
 echo "=========================================="
 echo ""
 
-# 检查 Certbot
-if ! command -v certbot &> /dev/null; then
-    echo "正在安装 Certbot..."
-    sudo yum install certbot certbot-nginx -y
+# 检查 Certbot - 使用绝对路径
+CERTBOT_CMD="/usr/bin/certbot"
+if ! $CERTBOT_CMD --version &> /dev/null 2>&1; then
+    # 尝试通过包管理器安装 Certbot
+    echo "正在尝试通过系统包管理器安装 Certbot..."
+    if sudo dnf install -y certbot python3-certbot-nginx; then
+        echo "✓ Certbot 通过 dnf 安装成功"
+    else
+        echo "正在通过 pip 安装 Certbot..."
+        sudo pip3 install --upgrade certbot certbot-nginx
+        CERTBOT_CMD="/usr/local/bin/certbot"
+        if [ ! -f "$CERTBOT_CMD" ]; then
+            CERTBOT_CMD=$(find /usr -name certbot -type f 2>/dev/null | head -1)
+            if [ -z "$CERTBOT_CMD" ]; then
+                echo "错误：无法找到 Certbot"
+                exit 1
+            fi
+        fi
+    fi
 fi
 
 # 获取域名
@@ -26,12 +42,12 @@ echo ""
 echo "正在获取 SSL 证书..."
 echo ""
 
-# 获取证书
-sudo certbot certonly \
+# 获取证书（使用 standalone 模式，如果 80 端口被占用可改为 webroot）
+sudo $CERTBOT_CMD certonly \
     --standalone \
     --non-interactive \
     --agree-tos \
-    --email admin@example.com \
+    --email dingyi609@outlook.com \
     -d "$DOMAIN"
 
 CERT_PATH="/etc/letsencrypt/live/$DOMAIN"
@@ -50,7 +66,9 @@ echo "=========================================="
 echo ""
 
 # 备份原配置
-sudo cp /etc/nginx/conf.d/sub-manager.conf /etc/nginx/conf.d/sub-manager.conf.bak
+if [ -f /etc/nginx/conf.d/sub-manager.conf ]; then
+    sudo cp /etc/nginx/conf.d/sub-manager.conf /etc/nginx/conf.d/sub-manager.conf.bak
+fi
 
 # 创建新配置
 sudo tee /etc/nginx/conf.d/sub-manager.conf > /dev/null <<EOF
@@ -66,23 +84,19 @@ server {
     listen 443 ssl http2;
     server_name $DOMAIN;
     
-    # SSL 证书配置
     ssl_certificate $CERT_FILE;
     ssl_certificate_key $KEY_FILE;
     
-    # SSL 安全配置
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers HIGH:!aNULL:!MD5;
     ssl_prefer_server_ciphers on;
     ssl_session_cache shared:SSL:10m;
     ssl_session_timeout 10m;
     
-    # 安全头
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-Content-Type-Options "nosniff" always;
     
-    # 配置
     root /var/www/sub-manager;
     
     location / {
@@ -103,19 +117,23 @@ EOF
 
 echo "✓ Nginx 配置已更新"
 
-# 测试配置
+# 测试 Nginx 配置
 echo ""
 echo "测试 Nginx 配置..."
-sudo nginx -t
-
-if [ $? -eq 0 ]; then
+if sudo nginx -t; then
     echo "✓ 配置测试通过"
     
     echo ""
     echo "重启 Nginx..."
     sudo systemctl restart nginx
-    
     echo "✓ Nginx 已重启"
+    
+    # 设置证书自动续期
+    echo ""
+    echo "设置证书自动续期..."
+    CRON_CMD="0 3 * * * $CERTBOT_CMD renew --quiet && /usr/bin/systemctl reload nginx"
+    (sudo crontab -l 2>/dev/null || true; echo "$CRON_CMD") | sudo crontab -
+    echo "✓ 证书续期已配置（每日凌晨 3:00）"
     
     echo ""
     echo "=========================================="
@@ -130,30 +148,15 @@ if [ $? -eq 0 ]; then
     echo "订阅 URL:"
     echo "  https://$DOMAIN/merged.yaml"
     echo ""
-    echo "证书更新:"
-    echo "  系统会在证书过期前自动续期（需启用 Crontab）"
-    echo "  手动续期: sudo certbot renew"
-    echo ""
     echo "测试:"
     echo "  curl https://$DOMAIN/health"
     echo "  curl https://$DOMAIN/merged.yaml | head"
     echo ""
-    
-    # 设置证书自动续期
-    echo "设置证书自动续期..."
-    (sudo crontab -l 2>/dev/null || true; echo "0 3 * * * certbot renew --quiet && systemctl reload nginx") | \
-        sudo crontab -
-    
-    echo "✓ 证书续期已配置（每日凌晨 3:00）"
-    
 else
     echo "✗ 配置测试失败，已恢复备份"
-    sudo cp /etc/nginx/conf.d/sub-manager.conf.bak /etc/nginx/conf.d/sub-manager.conf
+    if [ -f /etc/nginx/conf.d/sub-manager.conf.bak ]; then
+        sudo cp /etc/nginx/conf.d/sub-manager.conf.bak /etc/nginx/conf.d/sub-manager.conf
+    fi
     sudo systemctl restart nginx
     exit 1
 fi
-
-echo ""
-echo "=========================================="
-echo "  所有操作已完成！"
-echo "=========================================="

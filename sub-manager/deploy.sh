@@ -324,6 +324,16 @@ show_summary() {
     echo "   - 使用 Systemd Timer (推荐): 每天 09:00 自动更新"
     echo "   - 或使用 Crontab: 同样的配置已设置"
     echo ""
+    echo "🔒 HTTPS/SSL 配置 (可选):"
+    echo "   如需启用 HTTPS，请运行 SSL 配置脚本："
+    echo "      sudo bash $(dirname "$0")/setup-ssl.sh"
+    echo ""
+    echo "   该脚本将："
+    echo "   • 自动安装 Certbot（Let's Encrypt 证书管理工具）"
+    echo "   • 为你的域名获取免费 SSL 证书"
+    echo "   • 配置 Nginx 自动 HTTP 重定向到 HTTPS"
+    echo "   • 设置证书自动续期"
+    echo ""
 }
 
 # 主程序
