@@ -30,8 +30,9 @@ if ! $CERTBOT_CMD --version &> /dev/null 2>&1; then
     fi
 fi
 
-# 获取域名
-read -p "请输入你的域名 (例: sub.example.com): " DOMAIN
+# 设置默认域名（自动执行）
+DOMAIN="sub.before30.site"
+echo "使用域名: $DOMAIN"
 
 if [ -z "$DOMAIN" ]; then
     echo "错误：域名不能为空"
