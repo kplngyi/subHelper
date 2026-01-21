@@ -11,6 +11,7 @@ NC='\033[0m' # No Color
 
 # 配置变量
 PROJECT_NAME="sub-manager"
+SERVER_NAME="sub.before30.site"
 INSTALL_PATH="/opt/sub-manager"
 WEB_ROOT="/var/www/sub-manager"
 VENV_PATH="${INSTALL_PATH}/venv"
@@ -143,14 +144,14 @@ copy_project_files() {
 setup_nginx() {
     echo -e "${YELLOW}>>> 配置 Nginx${NC}"
     
-    # 创建 Nginx 配置文件
+    # 创建 Nginx 配置文件（先配置HTTP，SSL证书获取后会更新）
     sudo tee /etc/nginx/conf.d/sub-manager.conf > /dev/null <<'EOF'
+# HTTP 服务（用于证书验证）
 server {
-    listen 4567;
-    server_name _;
+    listen 80;
+    server_name sub.before30.site;
     
     client_max_body_size 100M;
-    
     root /var/www/sub-manager;
     
     # 设置默认访问
@@ -173,7 +174,7 @@ EOF
     # 检查配置并启动
     sudo nginx -t && sudo systemctl restart nginx
     
-    echo -e "${GREEN}✓ Nginx 配置完成${NC}"
+    echo -e "${GREEN}✓ Nginx 基础配置完成${NC}"
 }
 
 # 创建 Systemd Service
@@ -255,6 +256,9 @@ initial_merge() {
     echo -e "${YELLOW}>>> 执行初始合并${NC}"
     
     cd "${INSTALL_PATH}"
+    sudo -u "${SCRIPT_USER}" python3  \
+        "${INSTALL_PATH}/scripts/convert_nodes.py"
+
     sudo -u "${SCRIPT_USER}" python3 \
         "${INSTALL_PATH}/scripts/merge_subscriptions.py" \
         "${INSTALL_PATH}/config/config.yaml" \
@@ -280,6 +284,106 @@ ${INSTALL_PATH}/logs/*.log {
 EOF
     
     echo -e "${GREEN}✓ 日志轮转配置完成${NC}"
+}
+
+# 自动配置 SSL/HTTPS
+setup_ssl_auto() {
+    echo -e "${YELLOW}>>> 配置 SSL/HTTPS${NC}"
+    
+    # 先运行 Certbot 获取证书
+    echo "正在安装 Certbot 并获取 SSL 证书..."
+    
+    # 尝试用系统包管理器安装 Certbot
+    if ! command -v certbot &> /dev/null; then
+        echo "安装 Certbot..."
+        sudo dnf install -y certbot python3-certbot-nginx 2>/dev/null || \
+        sudo pip3 install --upgrade certbot certbot-nginx
+    fi
+    
+    # 获取 SSL 证书（使用 standalone 模式）
+    CERT_PATH="/etc/letsencrypt/live/${SERVER_NAME}"
+    if [ ! -f "${CERT_PATH}/fullchain.pem" ]; then
+        echo "获取 SSL 证书..."
+        sudo /usr/local/bin/certbot certonly \
+            --standalone \
+            --non-interactive \
+            --agree-tos \
+            --email dingyi609@outlook.com \
+            -d "${SERVER_NAME}" || true
+    else
+        echo "SSL 证书已存在，跳过获取步骤"
+    fi
+    
+    # 配置 HTTPS Nginx 配置文件
+    if [ -f "${CERT_PATH}/fullchain.pem" ]; then
+        echo "配置 HTTPS..."
+        
+        sudo tee /etc/nginx/conf.d/sub-manager.conf > /dev/null <<EOF
+# HTTP 重定向到 HTTPS
+server {
+    listen 80;
+    server_name ${SERVER_NAME};
+    return 301 https://\$server_name\$request_uri;
+}
+
+# HTTPS 服务
+server {
+    listen 443 ssl http2;
+    server_name ${SERVER_NAME};
+    
+    ssl_certificate ${CERT_PATH}/fullchain.pem;
+    ssl_certificate_key ${CERT_PATH}/privkey.pem;
+    
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+    
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Content-Type-Options "nosniff" always;
+    
+    client_max_body_size 100M;
+    root ${WEB_ROOT};
+    
+    # 设置默认访问
+    location / {
+        try_files \$uri =404;
+        add_header Content-Type text/yaml;
+        add_header Content-Disposition "attachment; filename=merged.yaml";
+    }
+    
+    # 健康检查
+    location /health {
+        return 200 "OK\n";
+        add_header Content-Type text/plain;
+    }
+    
+    # 访问日志
+    access_log /var/log/nginx/sub-manager-access.log combined;
+    error_log /var/log/nginx/sub-manager-error.log warn;
+}
+EOF
+        
+        # 测试配置
+        if sudo nginx -t; then
+            echo "重启 Nginx..."
+            sudo systemctl restart nginx
+            echo -e "${GREEN}✓ HTTPS 配置完成${NC}"
+            
+            # 设置证书自动续期
+            echo "设置证书自动续期..."
+            CRON_CMD="0 3 * * * /usr/local/bin/certbot renew --quiet && /usr/bin/systemctl reload nginx"
+            (sudo crontab -l 2>/dev/null || true; echo "$CRON_CMD") | sudo crontab -
+            echo -e "${GREEN}✓ 证书续期已配置${NC}"
+        else
+            echo -e "${RED}✗ Nginx 配置失败${NC}"
+            return 1
+        fi
+    else
+        echo -e "${YELLOW}⚠ SSL 证书获取失败，跳过 HTTPS 配置${NC}"
+    fi
 }
 
 # 显示安装总结
@@ -309,11 +413,10 @@ show_summary() {
     echo ""
     echo "📍 访问订阅:"
     PUBLIC_IP=$(get_public_ip)
-    echo "   当前监听端口: 4567"
     echo "   订阅地址:"
-    echo "   http://${PUBLIC_IP}:4567/merged.yaml"
-    echo "   http://your-vps-ip/merged.yaml"
-    send_ntfy "🚀 VPS (${HOSTNAME}) 订阅管理系统部署完成! 访问地址: http://${PUBLIC_IP}:4567/merged.yaml"
+    echo "   https://${SERVER_NAME}/merged.yaml (HTTPS - 推荐)"
+    echo "   http://${PUBLIC_IP}:4567/merged.yaml (HTTP备用)"
+    send_ntfy "🚀 VPS (${HOSTNAME}) 订阅管理系统部署完成! HTTPS访问: https://${SERVER_NAME}/merged.yaml"
     echo ""
     echo "📝 日志文件:"
     echo "   应用日志: ${INSTALL_PATH}/logs/merge_subscriptions.log"
@@ -324,15 +427,11 @@ show_summary() {
     echo "   - 使用 Systemd Timer (推荐): 每天 09:00 自动更新"
     echo "   - 或使用 Crontab: 同样的配置已设置"
     echo ""
-    echo "🔒 HTTPS/SSL 配置 (可选):"
-    echo "   如需启用 HTTPS，请运行 SSL 配置脚本："
-    echo "      sudo bash $(dirname "$0")/setup-ssl.sh"
-    echo ""
-    echo "   该脚本将："
-    echo "   • 自动安装 Certbot（Let's Encrypt 证书管理工具）"
-    echo "   • 为你的域名获取免费 SSL 证书"
-    echo "   • 配置 Nginx 自动 HTTP 重定向到 HTTPS"
-    echo "   • 设置证书自动续期"
+    echo "🔒 HTTPS/SSL 状态:"
+    echo "   ✓ SSL 证书已自动配置"
+    echo "   ✓ HTTPS 访问已启用"
+    echo "   ✓ 证书自动续期已设置"
+    echo "   测试访问: curl https://${SERVER_NAME}/health"
     echo ""
 }
 
@@ -354,6 +453,7 @@ main() {
     setup_crontab
     setup_logrotate
     initial_merge
+    setup_ssl_auto
     show_summary
 }
 

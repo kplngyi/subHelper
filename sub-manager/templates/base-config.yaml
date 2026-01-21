@@ -25,10 +25,6 @@ proxy-groups:
   type: select
   icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/mini/YouTube.png
   proxies: *id001
-- name: Speedtest
-  type: select
-  icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/mini/Speedtest.png
-  proxies: *id001
 - name: Spotify
   type: select
   icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/mini/Spotify.png
@@ -47,20 +43,25 @@ proxy-groups:
   tolerance: 50
   include-all: true
 - name: MINE
-  type: url-test
+  type: select
   filter: vip|(?i)manual
   icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/mini/United_States.png
-  url: http://cp.cloudflare.com/generate_204
-  interval: 300
   include-all: true
 - name: Crypto
   type: select
   icon: https://raw.githubusercontent.com/xixu-me/favicons/refs/heads/assets/binance.com.png
   proxies:
+  - MINE_JP
   - HK 香港
   - SG 新加坡
   - JP 日本
   - 选择代理
+- name: MINE_JP
+  type: select
+  filter: (?i)(?=.*jp)(?=.*vip)
+  icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/mini/United_States.png
+  hide: true
+  include-all: true
 - name: HK 香港
   type: url-test
   filter: 港|🇭🇰|HK|(?i)Hong
@@ -77,7 +78,7 @@ proxy-groups:
   include-all: true
 - name: JP 日本
   type: url-test
-  filter: 日|🇯🇵|东京|JP|(?i)Japan
+  filter: 日|🇯🇵|东京|jp|JP|(?i)Japan
   icon: https://fastly.jsdelivr.net/gh/Koolson/Qure/IconSet/mini/Japan.png
   url: http://cp.cloudflare.com/generate_204
   interval: 300
